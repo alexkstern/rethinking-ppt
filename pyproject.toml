@@ -1,0 +1,84 @@
+[project]
+name = "nanochat"
+version = "0.1.0"
+description = "Pre-pretraining research codebase: synthetic-data pre-pretraining under matched compute budgets"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "datasets>=4.0.0",
+    "huggingface-hub>=1.2.2",
+    "jinja2>=3.1.0",
+    "psutil>=7.1.0",
+    "python-dotenv>=1.0.0",
+    "regex>=2025.9.1",
+    "scipy>=1.12.0",
+    "setuptools>=80.9.0",
+    "tiktoken>=0.11.0",
+    "tokenizers>=0.22.0",
+    "torch>=2.8.0",
+    "wandb>=0.21.3",
+    "numpy>=1.22.4",
+    "matplotlib>=3.10.8",
+    "tyro>=0.8",
+]
+
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+module-name = "rustbpe"
+bindings = "pyo3"
+python-source = "."
+manifest-path = "rustbpe/Cargo.toml"
+
+[dependency-groups]
+dev = [
+    "maturin>=1.9.4",
+]
+
+[tool.uv.sources]
+torch = [  
+    { index = "pytorch-cpu", extra = "cpu" },  
+    { index = "pytorch-cu128", extra = "gpu" },  
+]
+llmtuna = { git = "https://github.com/alexkstern/llmtuna-hpo.git", rev = "75eea883a109d47cf07a9e23aa985795b26c6ae5" }
+
+[[tool.uv.index]]  
+name = "pytorch-cpu"  
+url = "https://download.pytorch.org/whl/cpu"  
+explicit = true  
+  
+[[tool.uv.index]]  
+name = "pytorch-cu128"  
+url = "https://download.pytorch.org/whl/cu128"  
+explicit = true
+
+[project.optional-dependencies]  
+cpu = [  
+    "torch>=2.8.0",  
+]  
+gpu = [  
+    "torch>=2.8.0",  
+]
+optimize = [
+    "llmtuna",
+]
+optuna = [
+    "optuna==4.9.0",  # version the published optuna_nca_1pct_1e18_v0 study ran with (from its W&B-captured requirements); TPE seeding is only reproducible within the same sampler version
+]
+nca = [
+    "jax",
+    "jaxlib",
+    "flax",
+    "einops",
+    "joblib",
+]
+
+[tool.uv]
+conflicts = [  
+    [  
+        { extra = "cpu" },  
+        { extra = "gpu" },  
+    ],  
+]  
