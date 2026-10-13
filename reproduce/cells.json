@@ -1,0 +1,4209 @@
+{
+ "description": "One record per experiment reported in the paper. `config` keys are dotted field paths into the training config, applied over its defaults; `selectors` choose the training program, the model spec its phases use, and the effective batch (tokens per optimizer step) each phase trains at. `flops_per_token` and `ppt_flops_per_token` are the per-token FLOPs each phase was budgeted with, as measured on GPU when the reported runs trained; pinning them skips the measurement, which would count differently on hardware where PyTorch's FLOP counter cannot see the attention kernel. `aux_eval_tokens` is how many tokens of each secondary validation set (C4, code, the PPT corpus) are scored, from the start of its split; FineWeb itself is always scored on the 10,485,760 tokens after the first 2,097,152. `checkpoints` maps each seed to the trained model on the Hugging Face Hub. Where present, `fineweb_bpb_scored_with` is the compile setting and eval batch size the paper's FineWeb numbers for that record were scored with.",
+ "n_seeds": 3,
+ "cells": [
+  {
+   "cell_id": "constrained__vanilla",
+   "setting": "constrained",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": null,
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 2},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.2,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.0,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-constrained-vanilla-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-constrained-vanilla-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-constrained-vanilla-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "constrained__nca_1pct",
+   "setting": "constrained",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "adamw",
+    "pt_batch": 262144,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 3e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680,
+    "ppt_flops_per_token": 3170129920
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-constrained-nca-1pct-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-constrained-nca-1pct-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-constrained-nca-1pct-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "constrained__nca_5pct",
+   "setting": "constrained",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "adamw",
+    "pt_batch": 262144,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 3e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680,
+    "ppt_flops_per_token": 3170129920
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-constrained-nca-5pct-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-constrained-nca-5pct-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-constrained-nca-5pct-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "constrained__nca_10pct",
+   "setting": "constrained",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "adamw",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 22,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.1,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 3e-06,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 4582014976,
+    "ppt_flops_per_token": 4112880640
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-constrained-nca-10pct-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-constrained-nca-10pct-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-constrained-nca-10pct-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "constrained__kdyck_1pct",
+   "setting": "constrained",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 8e-06,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680,
+    "ppt_flops_per_token": 3095265280
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-constrained-kdyck-1pct-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-constrained-kdyck-1pct-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-constrained-kdyck-1pct-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "constrained__kdyck_5pct",
+   "setting": "constrained",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 0.02,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680,
+    "ppt_flops_per_token": 3095265280
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-constrained-kdyck-5pct-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-constrained-kdyck-5pct-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-constrained-kdyck-5pct-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "constrained__kdyck_10pct",
+   "setting": "constrained",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 22,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.1,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 0.001,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 4582014976,
+    "ppt_flops_per_token": 4030529536
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-constrained-kdyck-10pct-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-constrained-kdyck-10pct-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-constrained-kdyck-10pct-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "constrained__declref_1pct",
+   "setting": "constrained",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "adamw",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "declref-01-seq_len_2048-2B",
+    "ppt_vocab_size": 1028,
+    "ppt_lr": 3e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680,
+    "ppt_flops_per_token": 3101194240
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-constrained-declref-1pct-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-constrained-declref-1pct-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-constrained-declref-1pct-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "constrained__declref_5pct",
+   "setting": "constrained",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "adamw",
+    "pt_batch": 262144,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "declref-01-seq_len_2048-2B",
+    "ppt_vocab_size": 1028,
+    "ppt_lr": 3e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680,
+    "ppt_flops_per_token": 3101194240
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-constrained-declref-5pct-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-constrained-declref-5pct-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-constrained-declref-5pct-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "constrained__declref_10pct",
+   "setting": "constrained",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "adamw",
+    "pt_batch": 262144,
+    "ppt_batch": 131072
+   },
+   "micro_batch": {"pt": 32, "ppt": 16, "nproc": 4},
+   "config": {
+    "depth": 21,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.1,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "declref-01-seq_len_2048-2B",
+    "ppt_vocab_size": 1028,
+    "ppt_lr": 1e-06,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 4398907392,
+    "ppt_flops_per_token": 3853943808
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-constrained-declref-10pct-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-constrained-declref-10pct-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-constrained-declref-10pct-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__vanilla_0_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": null,
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 12,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.0,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1075838976
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-vanilla-0pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-vanilla-0pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-vanilla-0pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__vanilla_0_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": null,
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 16, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.0,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-vanilla-0pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-vanilla-0pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-vanilla-0pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__vanilla_0_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": null,
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 16, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.5,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.0,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-vanilla-0pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-vanilla-0pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-vanilla-0pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__c4_1_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 11,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "c4-nanochatbpe-10B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1011351552,
+    "ppt_flops_per_token": 1011351552
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 64},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-1pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-1pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-1pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__c4_1_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 15,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "c4-nanochatbpe-10B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1975517184,
+    "ppt_flops_per_token": 1975517184
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-1pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-1pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-1pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__c4_1_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 16, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 19,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "c4-nanochatbpe-10B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3441950720,
+    "ppt_flops_per_token": 3441950720
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-1pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-1pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-1pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__c4_5_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 12,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "c4-nanochatbpe-10B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1075838976,
+    "ppt_flops_per_token": 1075838976
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-5pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-5pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-5pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__c4_5_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 15,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "c4-nanochatbpe-10B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1975517184,
+    "ppt_flops_per_token": 1975517184
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-5pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-5pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-5pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__c4_5_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 16, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 19,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "c4-nanochatbpe-10B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3441950720,
+    "ppt_flops_per_token": 3441950720
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-5pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-5pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-c4-5pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__nca_1_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 11,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 0.006,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1011351552,
+    "ppt_flops_per_token": 755460096
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 64},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-1pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-1pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-1pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__nca_1_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 15,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 0.02,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1975517184,
+    "ppt_flops_per_token": 1634328576
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-1pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-1pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-1pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__nca_1_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 19,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 0.012,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3441950720,
+    "ppt_flops_per_token": 3015464960
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-1pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-1pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-1pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__nca_5_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 12,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 0.002,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1075838976,
+    "ppt_flops_per_token": 819947520
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-5pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-5pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-5pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__nca_5_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 6e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1739186176
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-5pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-5pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-5pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__nca_5_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 6e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680,
+    "ppt_flops_per_token": 3170129920
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-5pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-5pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-nca-5pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__kdyck_1_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 11,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 0.003,
+    "ppt_lr_warmup_ratio": 0.1,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1011351552,
+    "ppt_flops_per_token": 710541312
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 64},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-1pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-1pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-1pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__kdyck_1_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 0.01,
+    "ppt_lr_warmup_ratio": 0.1,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1679294464
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-1pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-1pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-1pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__kdyck_1_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.04,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 0.01,
+    "ppt_lr_warmup_ratio": 0.1,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680,
+    "ppt_flops_per_token": 3095265280
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-1pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-1pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-1pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__kdyck_5_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 2},
+   "config": {
+    "depth": 12,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 3e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1075838976,
+    "ppt_flops_per_token": 775028736
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-5pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-5pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-5pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__kdyck_5_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 2},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 3e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1679294464
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-5pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-5pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-5pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__kdyck_5_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 2},
+   "config": {
+    "depth": 18,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 3e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2767454208,
+    "ppt_flops_per_token": 2316238848
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-5pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-5pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-kdyck-5pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__declref_1_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 12,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "declref-01-seq_len_2048-2B",
+    "ppt_vocab_size": 1028,
+    "ppt_lr": 0.012,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1075838976,
+    "ppt_flops_per_token": 778586112
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-1pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-1pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-1pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__declref_1_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "declref-01-seq_len_2048-2B",
+    "ppt_vocab_size": 1028,
+    "ppt_lr": 0.012,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1684037632
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-1pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-1pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-1pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__declref_1_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 18,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "declref-01-seq_len_2048-2B",
+    "ppt_vocab_size": 1028,
+    "ppt_lr": 0.012,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2767454208,
+    "ppt_flops_per_token": 2321574912
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-1pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-1pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-1pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__declref_5_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 12,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "declref-01-seq_len_2048-2B",
+    "ppt_vocab_size": 1028,
+    "ppt_lr": 0.002,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1075838976,
+    "ppt_flops_per_token": 778586112
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-5pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-5pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-5pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__declref_5_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "declref-01-seq_len_2048-2B",
+    "ppt_vocab_size": 1028,
+    "ppt_lr": 0.001,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1684037632
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-5pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-5pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-5pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__declref_5_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "declref-01-seq_len_2048-2B",
+    "ppt_vocab_size": 1028,
+    "ppt_lr": 0.001,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680,
+    "ppt_flops_per_token": 3101194240
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-5pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-5pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-declref-5pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_1_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 11,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1011351552,
+    "ppt_flops_per_token": 1011351552
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 64},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-1pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-1pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-1pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_1_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 15,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.5,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1975517184,
+    "ppt_flops_per_token": 1975517184
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-1pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-1pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-1pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_1_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 18,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.5,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2767454208,
+    "ppt_flops_per_token": 2767454208
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-1pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-1pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-1pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_5_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 12,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1075838976,
+    "ppt_flops_per_token": 1075838976
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-5pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-5pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-5pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_5_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.02,
+    "lr_warmdown_ratio": 0.5,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 2080374784
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-5pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-5pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-5pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_5_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 20,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.02,
+    "lr_warmdown_ratio": 0.5,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": null,
+    "ppt_lr_warmup_ratio": null,
+    "ppt_lr_warmdown_ratio": null,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 3596615680,
+    "ppt_flops_per_token": 3596615680
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-5pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-5pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-5pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_sep_1_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 64, "nproc": 4},
+   "config": {
+    "depth": 11,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": 0.0001,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1011351552,
+    "ppt_flops_per_token": 1011351552
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 64},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-1pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-1pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-1pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_sep_1_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 15,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": 0.0003,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.7,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1975517184,
+    "ppt_flops_per_token": 1975517184
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-1pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-1pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-1pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_sep_1_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 18,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.01,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": 0.0003,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.7,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2767454208,
+    "ppt_flops_per_token": 2767454208
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-1pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-1pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-1pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_sep_5_1e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 12,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 1e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": 1e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1075838976,
+    "ppt_flops_per_token": 1075838976
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-5pct-1e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-5pct-1e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-5pct-1e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_sep_5_3e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 14,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 3e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": 1e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.8,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 1521221632,
+    "ppt_flops_per_token": 1521221632
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-5pct-3e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-5pct-3e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-5pct-3e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "scaling__code_sep_5_9e18",
+   "setting": "scaling",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 18,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 9e+18,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_vocab_size": null,
+    "ppt_lr": 1e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.8,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2767454208,
+    "ppt_flops_per_token": 2767454208
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-5pct-9e18-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-5pct-9e18-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-scaling-code-sep-5pct-9e18-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "over_chinchilla__vanilla",
+   "setting": "over_chinchilla",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": null,
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 24,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.006,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.5,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 50000000000,
+    "data_pt": "fineweb-nanochatbpe-55B",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": 4000,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 5737807872
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 16},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-over-chinchilla-vanilla-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-over-chinchilla-vanilla-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-over-chinchilla-vanilla-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "over_chinchilla__nca",
+   "setting": "over_chinchilla",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 16, "nproc": 4},
+   "config": {
+    "depth": 24,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.007480112,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4949513,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 49500000000,
+    "ppt_tokens": 500000000,
+    "data_pt": "fineweb-nanochatbpe-55B",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 0.0012789984,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.6,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": 4000,
+    "ppt_eval_every_n_steps": 238,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 5737807872,
+    "ppt_flops_per_token": 5226024960
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 16},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-over-chinchilla-nca-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-over-chinchilla-nca-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-over-chinchilla-nca-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "over_chinchilla__kdyck",
+   "setting": "over_chinchilla",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 1048576
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 24,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.006,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4949513,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 49500000000,
+    "ppt_tokens": 500000000,
+    "data_pt": "fineweb-nanochatbpe-55B",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 0.01,
+    "ppt_lr_warmup_ratio": 0.1,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 9437184,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": 4000,
+    "ppt_eval_every_n_steps": 238,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 5737807872,
+    "ppt_flops_per_token": 5136187392
+   },
+   "fineweb_bpb_scored_with": {"compile": false, "eval_batch_size": 16},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-over-chinchilla-kdyck-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-over-chinchilla-kdyck-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-over-chinchilla-kdyck-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__50m_n01embed_vanilla_0",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "n01_embed",
+    "ppt_opt": null,
+    "pt_batch": 65536,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 8, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 50000000,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-50m-n01embed-vanilla-0-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-50m-n01embed-vanilla-0-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-50m-n01embed-vanilla-0-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__50m_spectral_vanilla_0",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": null,
+    "pt_batch": 65536,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 16, "ppt": null, "nproc": 2},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 50000000,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-50m-spectral-vanilla-0-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-50m-spectral-vanilla-0-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-50m-spectral-vanilla-0-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__50m_n002all_nca_500_muon",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "n002_all",
+    "ppt_opt": "muon",
+    "pt_batch": 65536,
+    "ppt_batch": 262144
+   },
+   "micro_batch": {"pt": 8, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 50000000,
+    "ppt_tokens": 500000000,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "nca-paper-share200-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 0.004,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 1.0,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1739186176
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-50m-n002all-nca-500-muon-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-50m-n002all-nca-500-muon-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-50m-n002all-nca-500-muon-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__50m_spectral_kdyck_20_adamw",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "adamw",
+    "pt_batch": 65536,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 16, "ppt": null, "nproc": 2},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 50000000,
+    "ppt_tokens": 20000000,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 0.00012,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 1.0,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1679294464
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-50m-spectral-kdyck-20-adamw-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-50m-spectral-kdyck-20-adamw-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-50m-spectral-kdyck-20-adamw-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__100m_n01embed_vanilla_0",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "n01_embed",
+    "ppt_opt": null,
+    "pt_batch": 65536,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 8, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 100000000,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-100m-n01embed-vanilla-0-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-100m-n01embed-vanilla-0-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-100m-n01embed-vanilla-0-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__100m_spectral_vanilla_0",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": null,
+    "pt_batch": 65536,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 8, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 100000000,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-100m-spectral-vanilla-0-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-100m-spectral-vanilla-0-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-100m-spectral-vanilla-0-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__100m_n002all_nca_500_muon",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "n002_all",
+    "ppt_opt": "muon",
+    "pt_batch": 65536,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 16, "ppt": 32, "nproc": 2},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 100000000,
+    "ppt_tokens": 500000000,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "nca-paper-share20-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 0.006,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 1.0,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1739186176
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-100m-n002all-nca-500-muon-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-100m-n002all-nca-500-muon-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-100m-n002all-nca-500-muon-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__100m_spectral_kdyck_1000_adamw",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "adamw",
+    "pt_batch": 65536,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 8, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 100000000,
+    "ppt_tokens": 1000000000,
+    "data_pt": "fineweb-nanochatbpe-100M",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 5e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 1.0,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1679294464
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-100m-spectral-kdyck-1000-adamw-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-100m-spectral-kdyck-1000-adamw-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-100m-spectral-kdyck-1000-adamw-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__1b_n01embed_vanilla_0",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "n01_embed",
+    "ppt_opt": null,
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 2},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 1000000000,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-1b-n01embed-vanilla-0-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-1b-n01embed-vanilla-0-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-1b-n01embed-vanilla-0-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__1b_spectral_vanilla_0",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": null,
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 1000000000,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-1b-spectral-vanilla-0-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-1b-spectral-vanilla-0-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-1b-spectral-vanilla-0-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__1b_spectral_nca_100_muon",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 1000000000,
+    "ppt_tokens": 100000000,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "nca-paper-share200-2048",
+    "ppt_vocab_size": 10004,
+    "ppt_lr": 6e-06,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 1.0,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1739186176
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-1b-spectral-nca-100-muon-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-1b-spectral-nca-100-muon-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-1b-spectral-nca-100-muon-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "additive__1b_spectral_kdyck_5_muon",
+   "setting": "additive",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 16,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.02,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 0.0,
+    "alpha_ppt": 0.0,
+    "pt_tokens": 1000000000,
+    "ppt_tokens": 5000000,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "dyck-k128-seq_len_2048-1B",
+    "ppt_vocab_size": 256,
+    "ppt_lr": 6e-06,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": false,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": true,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": null,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 2080374784,
+    "ppt_flops_per_token": 1679294464
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-additive-1b-spectral-kdyck-5-muon-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-additive-1b-spectral-kdyck-5-muon-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-additive-1b-spectral-kdyck-5-muon-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "interleave__nca_interleaved",
+   "setting": "interleave",
+   "selectors": {
+    "entry": "interleaved",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 24,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 75540,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.5,
+    "lr_final_frac": 0.0,
+    "target_flops": 2.7e+19,
+    "ppt_corpus_tokens": 235143168,
+    "pt_corpus_tokens": 4470341632,
+    "pure_code_frac": 0.0,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "nca-paper-share20-2048-offset65536",
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": 0.05,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 5830004736
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-interleave-nca-interleaved-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-interleave-nca-interleaved-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-interleave-nca-interleaved-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "interleave__kdyck_interleaved",
+   "setting": "interleave",
+   "selectors": {
+    "entry": "interleaved",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 24,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65792,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.5,
+    "lr_final_frac": 0.0,
+    "target_flops": 2.7e+19,
+    "ppt_corpus_tokens": 235143168,
+    "pt_corpus_tokens": 4470341632,
+    "pure_code_frac": 0.0,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "dyck-k128-seq_len_2048-1B-offset65536",
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": 0.05,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 5740167168
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-interleave-kdyck-interleaved-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-interleave-kdyck-interleaved-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-interleave-kdyck-interleaved-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "interleave__code_interleaved",
+   "setting": "interleave",
+   "selectors": {
+    "entry": "interleaved",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 24,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.5,
+    "lr_final_frac": 0.0,
+    "target_flops": 2.7e+19,
+    "ppt_corpus_tokens": 235143168,
+    "pt_corpus_tokens": 4470341632,
+    "pure_code_frac": 0.0,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": 0.05,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 5737807872
+   },
+   "fineweb_bpb_scored_with": {"compile": true, "eval_batch_size": 32},
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-interleave-code-interleaved-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-interleave-code-interleaved-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-interleave-code-interleaved-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "interleave__nca_phase",
+   "setting": "interleave",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 24,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 75540,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 2.7e+19,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "nca-paper-share20-2048-offset65536",
+    "ppt_vocab_size": null,
+    "ppt_lr": 6e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": 0.05,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 5830004736,
+    "ppt_flops_per_token": 5830004736
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-interleave-nca-phase-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-interleave-nca-phase-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-interleave-nca-phase-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "interleave__kdyck_phase",
+   "setting": "interleave",
+   "selectors": {
+    "entry": "two_phase",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": 524288
+   },
+   "micro_batch": {"pt": 32, "ppt": 32, "nproc": 4},
+   "config": {
+    "depth": 21,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65792,
+    "optim.matrix_lr": 0.03,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.4,
+    "lr_final_frac": 0.0,
+    "target_flops": 2.7e+19,
+    "alpha_ppt": 0.05,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "dyck-k128-seq_len_2048-1B-offset65536",
+    "ppt_vocab_size": null,
+    "ppt_lr": 3e-05,
+    "ppt_lr_warmup_ratio": 0.0,
+    "ppt_lr_warmdown_ratio": 0.4,
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": false,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": true,
+    "random_pt_head": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": 0.05,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 4401070080,
+    "ppt_flops_per_token": 4401070080
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-interleave-kdyck-phase-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-interleave-kdyck-phase-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-interleave-kdyck-phase-seed2"
+    }
+   }
+  },
+  {
+   "cell_id": "interleave__code_phase",
+   "setting": "interleave",
+   "selectors": {
+    "entry": "interleaved",
+    "init_variant": "spectral",
+    "ppt_opt": "muon",
+    "pt_batch": 262144,
+    "ppt_batch": null
+   },
+   "micro_batch": {"pt": 32, "ppt": null, "nproc": 4},
+   "config": {
+    "depth": 24,
+    "model_pt.sequence_len": 2048,
+    "pad_vocab": 65536,
+    "optim.matrix_lr": 0.015,
+    "optim.embedding_lr": 0.3,
+    "optim.unembedding_lr": 0.004,
+    "optim.weight_decay": 0.0,
+    "train.grad_clip": 1.0,
+    "lr_warmup_ratio": 0.0,
+    "lr_warmdown_ratio": 0.5,
+    "lr_final_frac": 0.0,
+    "target_flops": 2.7e+19,
+    "ppt_corpus_tokens": 235143168,
+    "pt_corpus_tokens": 4470341632,
+    "pure_code_frac": 1.0,
+    "data_pt": "fineweb-nanochatbpe-20B",
+    "data_ppt": "github-code-nanochatbpe-1B",
+    "ppt_same_vocab_as_pt": true,
+    "ppt_unified_lr": true,
+    "reinit_embed_at_transition": false,
+    "reset_optimizer_at_transition": false,
+    "eval_tokens": 10485760,
+    "eval_offset_tokens": 2097152,
+    "aux_eval_tokens": 2097152,
+    "extra_eval": [
+     "c4-nanochatbpe-10B"
+    ],
+    "train.eval_every_flops_frac": 0.05,
+    "train.eval_every_n_steps": null,
+    "hardware.peak_tflops": 2250.0,
+    "use_measured_flops": true,
+    "flops_per_token": 5737807872,
+    "ppt_flops_per_token": 5737807872
+   },
+   "checkpoints": {
+    "0": {
+     "hf_repo": "alexkstern/rppt-interleave-code-phase-seed0"
+    },
+    "1": {
+     "hf_repo": "alexkstern/rppt-interleave-code-phase-seed1"
+    },
+    "2": {
+     "hf_repo": "alexkstern/rppt-interleave-code-phase-seed2"
+    }
+   }
+  }
+ ]
+}
