@@ -38,7 +38,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-llmtuna = { git = "https://github.com/alexkstern/llmtuna-hpo.git", rev = "75eea883a109d47cf07a9e23aa985795b26c6ae5" }
+llmtuna = { git = "https://github.com/alexkstern/llmtuna-hpo.git", rev = "6f08b0411d5612d80276fa3ca45d79b7d4617df4" }
 
 [project.optional-dependencies]
 optimize = [
